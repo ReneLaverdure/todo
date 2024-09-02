@@ -1,5 +1,5 @@
 const userModel = require('../../models/userModel')
-const userController = require('../../controllers/user.controller')
+const authController = require('../../controllers/auth.controller')
 const mockHttp = require('node-mocks-http')
 const userRegiserData = require('../mock-data/userRes.json')
 
@@ -12,21 +12,21 @@ beforeEach(() => {
 
 })
 
-describe('userController has register function', () => {
+describe('authController has register function', () => {
     beforeEach(() => {
         req.body = userRegiserData
     })
     it('register function exist', async () => {
-        expect(typeof userController.register).toBe('function')
+        expect(typeof authController.register).toBe('function')
     })
     it('register function called with right values ', async () => {
-        await userController.register(req, res)
+        await authController.register(req, res)
         expect(userModel.create).toBeCalledWith(userRegiserData)
     })
 })
 
-describe('userController has login function', () => {
+describe('authController has login function', () => {
     it('login fuction exist', async () => {
-        expect(typeof userController.login).toBe('function')
+        expect(typeof authController.login).toBe('function')
     })
 })
