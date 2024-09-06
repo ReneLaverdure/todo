@@ -3,8 +3,9 @@ const jwt = require('jsonwebtoken')
 const { BadRequest } = require('../errors/index')
 
 // change BadRequest to unAuthenticatedError
-const authentication = async (err, req, res, next) => {
-    const authHeader = req.headers.authoriation
+const authentication = async (req, res, next) => {
+
+    const authHeader = req.headers.authorization
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         throw new BadRequest('authenication invalid')
     }
