@@ -13,9 +13,6 @@ beforeEach(() => {
 })
 
 describe('authController has register function', () => {
-    beforeEach(() => {
-        req.body = userRegiserData
-    })
     it('register function exist', async () => {
         expect(typeof authController.register).toBe('function')
     })
