@@ -5,7 +5,10 @@ const todoSchema = mongoose.Schema({
         type: String,
         required: [true, 'please provide a todo name']
     },
-    done: Boolean,
+    done: {
+        type: Boolean,
+        default: false
+    },
     createdBy: {
         type: mongoose.Types.ObjectId,
         ref: 'User',
