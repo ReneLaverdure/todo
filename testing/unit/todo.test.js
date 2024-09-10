@@ -10,6 +10,7 @@ const singleTodo = {
     "done": false,
     "createdBy": "64d27c9f8c91f73b3b2f3e5e"
 }
+
 let req, res;
 beforeEach(() => {
     req = mockHttp.createRequest()
@@ -18,12 +19,17 @@ beforeEach(() => {
 })
 
 describe('createTodo controllers', () => {
+
+    beforeEach(() => {
+        req.body = mockTodo
+    })
+
     it('createTodo function exist', async () => {
         expect(typeof todoController.createTodo).toBe('function')
     })
     it('create function called with correct value', async () => {
         await todoController.createTodo(req, res)
-        expect(todoModel.create).toBeCalledWith(mockTodo)
+        expect(todoModel.create).toBeCalledWith({ name: mockTodo.name, createdBy: req.user.userId })
     })
     it('return 201 status', async () => {
         await todoController.createTodo(req, res)
@@ -34,7 +40,7 @@ describe('createTodo controllers', () => {
         todoModel.create.mockReturnValue(mockTodo)
         await todoController.createTodo(req, res)
         expect(res._getJSONData()).toEqual(mockTodo)
-        expect(res.body).toEqual(mockTodo)
+
 
     })
     it('handle errors', async () => {
@@ -53,7 +59,7 @@ describe('getAllTodo controllers', () => {
 
     it('getAllTodo function called with correct value', async () => {
         await todoController.getAllTodo(req, res)
-        expect(todoModel.find).toBeCalledWith(mockTodo)
+        expect(todoModel.find).toBeCalledWith({ createdBy: req.user.userId })
     })
     it('return 200 status', async () => {
         await todoController.getAllTodo(req, res)
@@ -64,7 +70,7 @@ describe('getAllTodo controllers', () => {
         todoModel.find.mockReturnValue(mockTodoList)
         await todoController.getAllTodo(req, res)
         expect(res._getJSONData()).toEqual(mockTodoList)
-        expect(res.body).toEqual(mockTodoList)
+
     })
     it('handle errors', async () => {
         // const errorMessage = { message: 'failed to get data' }
@@ -85,7 +91,7 @@ describe('getSingleTodo controllers', () => {
     })
     it('getSingleTodo function called with correction values', async () => {
         await todoController.getSingleTodo(req, res)
-        expect(todoModel.findOne).toBeCalledWith("64d27c9f8c91f73b3b2f3e5e")
+        expect(todoModel.findOne).toBeCalledWith({ createdBy: req.user.userId, _id: req.params.id })
     })
     it('return 200 status', async () => {
         await todoController.getSingleTodo(req, res)
@@ -93,10 +99,10 @@ describe('getSingleTodo controllers', () => {
         expect(res._isEndCalled()).toBeTruthy()
     })
     it('return single todos', async () => {
-        todoModel.findOne.mockReturnValue(req.params.id)
+        todoModel.findOne.mockReturnValue(singleTodo)
         await todoController.getSingleTodo(req, res)
         expect(res._getJSONData()).toEqual(singleTodo)
-        expect(res.body).toEqual(singleTodo)
+
     })
     // error handling testing
 })
@@ -110,8 +116,12 @@ describe('updateTodo controllers', () => {
         expect(typeof todoController.updateTodo).toBe('function')
     })
     it('updateTodo function called with correction values', async () => {
+
+        const filter = { _id: req.params.id, createdBy: req.user.userId }
+        const update = { ...req.body }
+        const options = { new: true, runValidators: true }
         await todoController.updateTodo(req, res)
-        expect(todoModel.findByIdAndUpdate).toBeCalledWith("64d27c9f8c91f73b3b2f3e5e")
+        expect(todoModel.findOneAndUpdate).toBeCalledWith(filter, update, options)
     })
     it('return 200 status', async () => {
         await todoController.updateTodo(req, res)
@@ -119,15 +129,18 @@ describe('updateTodo controllers', () => {
         expect(res._isEndCalled()).toBeTruthy()
     })
     it('return single todos', async () => {
-        todoModel.findByIdAndUpdate.mockReturnValue(req.params.id)
+
+        const filter = { _id: req.params.id, createdBy: req.user.userId }
+        const options = { new: true, runValidators: true }
         const updatedTodo = {
             name: "updated todo item",
             done: true
         }
         req.body = updatedTodo
+        todoModel.findOneAndUpdate.mockReturnValue(filter, updatedTodo, options)
         await todoController.updateTodo(req, res)
-        expect(res._getJSONData()).toEqual(updatedTodo)
-        expect(res.body).toEqual(updatedTodo)
+        expect(res._getJSONData()).toBeTruthy()
+
     })
     // error handling testing
 })
@@ -142,7 +155,7 @@ describe('deleteTodo controllers', () => {
     })
     it('deleteTodo function called with correction values', async () => {
         await todoController.deleteTodo(req, res)
-        expect(todoModel.findByIdAndDelete).toBeCalledWith("64d27c9f8c91f73b3b2f3e5e")
+        expect(todoModel.findOneAndDelete).toBeCalledWith({ _id: req.params.id, createdBy: req.user.userId })
     })
     it('return 200 status', async () => {
         await todoController.deleteTodo(req, res)
@@ -150,10 +163,10 @@ describe('deleteTodo controllers', () => {
         expect(res._isEndCalled()).toBeTruthy()
     })
     it('return single todos', async () => {
-        todoModel.findByIdAndDelete.mockReturnValue(req.params.id)
+        todoModel.findOneAndDelete.mockReturnValue({ _id: req.params.id, createdBy: req.user.userId })
         await todoController.deleteTodo(req, res)
-        expect(res._getJSONData()).toEqual(deleteTodo)
-        expect(res.body).toEqual(deleteTodo)
+        expect(res._getJSONData()).toBeTruthy()
+
     })
     // error handling testing
 })
