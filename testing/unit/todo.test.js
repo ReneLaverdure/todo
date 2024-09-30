@@ -3,7 +3,10 @@ const todoController = require('../../controllers/todo.controller')
 const mockHttp = require('node-mocks-http')
 const mockTodo = require('../mock-data/todo.json')
 const mockTodoList = require('../mock-data/todo-list.json')
+const { BadRequest } = require('../../utils/errors')
+
 jest.mock('../../models/todoModel.js')
+
 
 const singleTodo = {
     "name": "talk/visit a friend",
@@ -11,11 +14,12 @@ const singleTodo = {
     "createdBy": "64d27c9f8c91f73b3b2f3e5e"
 }
 
-let req, res;
+let req, res, next;
 beforeEach(() => {
     req = mockHttp.createRequest()
     res = mockHttp.createResponse()
     req.user = { userId: "64d27c9f8c91f73b3b2f3e5e" }
+    next = jest.fn()
 })
 
 describe('createTodo controllers', () => {
@@ -43,12 +47,15 @@ describe('createTodo controllers', () => {
 
 
     })
+    it('handle error no todo name', async () => {
+        req.body = {}
+        await expect(todoController.createTodo(req, res)).rejects.toThrow(BadRequest)
+    })
     it('handle errors', async () => {
-        //     const errorMessage = { message: 'property missing' }
-        //     const rejectedPromise = Promise.reject(errorMessage)
-        //     todoModel.create.mockReturnValue(rejectedPromise)
-        //     await todoController.createTodo(req, res)
-        //     expect(next).toBeCalledWith(errorMessage)
+        const errorMessage = { message: 'property missing' }
+        const rejectedPromise = Promise.reject(errorMessage)
+        todoModel.create.mockReturnValue(rejectedPromise)
+        await expect(todoController.createTodo(req, res)).rejects.toThrow(BadRequest)
     })
 })
 
@@ -72,12 +79,15 @@ describe('getAllTodo controllers', () => {
         expect(res._getJSONData()).toEqual(mockTodoList)
 
     })
+    it('handle error no user id', async () => {
+        req.user = {}
+        await expect(todoController.getAllTodo(req, res)).rejects.toThrow(BadRequest)
+    })
     it('handle errors', async () => {
-        // const errorMessage = { message: 'failed to get data' }
-        // const rejectedPromise = Promise.reject(errorMessage)
-        // todoModel.find.mockReturnValue(rejectedPromise)
-        // await todoController.getAllTodo(req, res)
-        // expect(next).toBeCalledWith(errorMessage)
+        const errorMessage = { message: 'failed to get data' }
+        const rejectedPromise = Promise.reject(errorMessage)
+        todoModel.find.mockReturnValue(rejectedPromise)
+        await expect(todoController.getAllTodo(req, res)).rejects.toThrow(BadRequest)
     })
 })
 
@@ -104,7 +114,17 @@ describe('getSingleTodo controllers', () => {
         expect(res._getJSONData()).toEqual(singleTodo)
 
     })
-    // error handling testing
+    it('handle error no todoId or userId', async () => {
+        req.user = {}
+        req.params = {}
+        await expect(todoController.getSingleTodo(req, res)).rejects.toThrow(BadRequest)
+    })
+    it('handle mongoose error', async () => {
+        const errorMessage = { message: 'todo id doesnt exist' }
+        const rejectedPromise = Promise.reject(errorMessage)
+        todoModel.findOne.mockReturnValue(rejectedPromise)
+        await expect(todoController.getSingleTodo(req, res)).rejects.toThrow(BadRequest)
+    })
 })
 
 
@@ -142,7 +162,17 @@ describe('updateTodo controllers', () => {
         expect(res._getJSONData()).toBeTruthy()
 
     })
-    // error handling testing
+    it('handle error no userId or todoId', async () => {
+        req.params = {}
+        req.user = {}
+        await expect(todoController.updateTodo(req, res)).rejects.toThrow(BadRequest)
+    })
+    it('handle mongoose error', async () => {
+        const errorMessage = { message: 'todId or userId doesnt exist' }
+        const rejectedPromise = Promise.reject(errorMessage)
+        todoModel.findOneAndUpdate.mockReturnValue(rejectedPromise)
+        await expect(todoController.updateTodo(req, res)).rejects.toThrow(BadRequest)
+    })
 })
 
 
@@ -168,7 +198,18 @@ describe('deleteTodo controllers', () => {
         expect(res._getJSONData()).toBeTruthy()
 
     })
-    // error handling testing
+    it('handle error no userId or todoId', async () => {
+        req.params = {}
+        req.user = {}
+        await expect(todoController.deleteTodo(req, res)).rejects.toThrow(BadRequest)
+    })
+    it('handle mongoose error', async () => {
+        const errorMessage = { message: 'todId or userId doesnt exist' }
+        const rejectedPromise = Promise.reject(errorMessage)
+        todoModel.findOneAndDelete.mockReturnValue(rejectedPromise)
+        await expect(todoController.deleteTodo(req, res)).rejects.toThrow(BadRequest)
+    })
+
 })
 
 
