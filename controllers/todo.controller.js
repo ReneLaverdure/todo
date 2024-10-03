@@ -28,7 +28,7 @@ exports.getAllTodo = async (req, res) => {
 
     try {
         const todoList = await todoModel.find({ createdBy: userId })
-        res.status(200).json(todoList)
+        return res.status(200).json(todoList)
     } catch (err) {
         console.error(err)
         throw new BadRequest('cannot find todo list')
@@ -45,7 +45,12 @@ exports.getSingleTodo = async (req, res) => {
 
     try {
         const todo = await todoModel.findOne({ createdBy: userId, _id: todoId })
-        res.status(200).json(todo)
+
+        if (!todo) {
+            throw new BadRequest('todo id doesnt exist')
+        }
+
+        return res.status(200).json(todo)
     } catch (err) {
         console.error(err)
         throw new BadRequest('todo id doesnt exist')
@@ -67,7 +72,12 @@ exports.updateTodo = async (req, res) => {
 
     try {
         const updatedTodo = await todoModel.findOneAndUpdate(filter, update, options)
-        res.status(200).json(updatedTodo)
+
+        if (!updatedTodo) {
+            throw new BadRequest('cannot find and update todo')
+        }
+
+        return res.status(200).json(updatedTodo)
     } catch (err) {
         console.error(err)
         throw new BadRequest('cannot find and update todo')
